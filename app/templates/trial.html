@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ trial.title }} · RoboOps Lite</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <a href="/" class="back">← Dashboard</a>
+    <section class="hero compact">
+      <div>
+        <p class="eyebrow">Trial detail</p>
+        <h1>{{ trial.title }}</h1>
+        <p class="lead">{{ trial.robot_name or 'No robot linked' }} · {{ trial.skill_name or 'No skill linked' }} · {{ trial.environment or 'No environment specified' }}</p>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><span>{{ '%.1f'|format(trial.success_rate * 100) }}%</span><small>Success</small></div>
+        <div class="metric"><span>{{ trial.failure_count }}</span><small>Failures</small></div>
+        <div class="metric"><span>{{ trial.intervention_count }}</span><small>Interventions</small></div>
+        <div class="metric"><span>{{ trial.duration_seconds }}</span><small>Seconds</small></div>
+      </div>
+    </section>
+
+    <section class="cards two-col">
+      <article class="card">
+        <h2>Annotate event</h2>
+        <form method="post" action="/trials/{{ trial.id }}/annotate">
+          <input name="timestamp" type="number" step="0.01" placeholder="Timestamp seconds">
+          <input name="event_type" placeholder="Event type, e.g. failure, intervention" required>
+          <input name="label" placeholder="Label / cause">
+          <input name="confidence" type="number" step="0.01" min="0" max="1" placeholder="Confidence 0–1">
+          <input name="value" type="number" step="0.01" placeholder="Value">
+          <textarea name="metadata" placeholder="Metadata or note"></textarea>
+          <button type="submit">Add annotation</button>
+        </form>
+      </article>
+      <article class="card">
+        <h2>Deployment report</h2>
+        <p>Export a Markdown report that can be used for engineering review, customer validation, investor updates, or post-trial learning.</p>
+        <a class="button-link" href="/trials/{{ trial.id }}/report.md">Export Markdown report</a>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>Event timeline</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Time</th><th>Event</th><th>Label</th><th>Confidence</th><th>Value</th><th>Metadata</th></tr></thead>
+          <tbody>
+          {% for event in events %}
+            <tr>
+              <td>{{ event.timestamp if event.timestamp is not none else '—' }}</td>
+              <td>{{ event.event_type }}</td>
+              <td>{{ event.label }}</td>
+              <td>{{ event.confidence if event.confidence is not none else '—' }}</td>
+              <td>{{ event.value if event.value is not none else '—' }}</td>
+              <td><small>{{ event.metadata }}</small></td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6">No events recorded yet.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
