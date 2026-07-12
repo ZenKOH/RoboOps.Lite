@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RoboOps Lite</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Local-first physical AI deployment intelligence</p>
+        <h1>RoboOps Lite</h1>
+        <p class="lead">Track robot trials, annotate failures, compare skills, and export deployment reports without sending sensitive robot data to the cloud.</p>
+      </div>
+      <div class="metric-grid">
+        <div class="metric"><span>{{ totals.trial_count }}</span><small>Trials</small></div>
+        <div class="metric"><span>{{ '%.1f'|format(totals.avg_success_rate * 100) }}%</span><small>Avg success</small></div>
+        <div class="metric"><span>{{ totals.total_failures }}</span><small>Failures</small></div>
+        <div class="metric"><span>{{ totals.total_interventions }}</span><small>Interventions</small></div>
+      </div>
+    </section>
+
+    <section class="cards two-col">
+      <article class="card">
+        <h2>Add robot</h2>
+        <form method="post" action="/robots">
+          <input name="name" placeholder="Robot name, e.g. Booster T1 Alpha" required>
+          <input name="platform" placeholder="Platform, e.g. Booster T1, Unitree G1" required>
+          <input name="hardware_version" placeholder="Hardware version">
+          <input name="firmware_version" placeholder="Firmware version">
+          <textarea name="notes" placeholder="Notes"></textarea>
+          <button type="submit">Save robot</button>
+        </form>
+      </article>
+
+      <article class="card">
+        <h2>Add skill</h2>
+        <form method="post" action="/skills">
+          <input name="name" placeholder="Skill name, e.g. Fall recovery" required>
+          <input name="category" placeholder="Category, e.g. locomotion">
+          <input name="compatible_platforms" placeholder="Compatible platforms">
+          <select name="status">
+            <option value="lab">Lab</option>
+            <option value="pilot">Pilot</option>
+            <option value="customer-ready">Customer-ready</option>
+          </select>
+          <textarea name="description" placeholder="Description"></textarea>
+          <textarea name="safety_boundary" placeholder="Safety boundary"></textarea>
+          <button type="submit">Save skill</button>
+        </form>
+      </article>
+    </section>
+
+    <section class="card">
+      <h2>Create trial</h2>
+      <form class="grid-form" method="post" action="/trials">
+        <input name="title" placeholder="Trial title" required>
+        <select name="robot_id">
+          <option value="">No robot linked</option>
+          {% for robot in robots %}<option value="{{ robot.id }}">{{ robot.name }} — {{ robot.platform }}</option>{% endfor %}
+        </select>
+        <select name="skill_id">
+          <option value="">No skill linked</option>
+          {% for skill in skills %}<option value="{{ skill.id }}">{{ skill.name }} — {{ skill.status }}</option>{% endfor %}
+        </select>
+        <input name="environment" placeholder="Environment, e.g. RoboCup field, warehouse aisle">
+        <input name="model_version" placeholder="Model / policy version">
+        <input name="protocol" placeholder="Protocol name">
+        <select name="status">
+          <option value="unknown">Unknown</option>
+          <option value="passed">Passed</option>
+          <option value="failed">Failed</option>
+          <option value="needs-review">Needs review</option>
+        </select>
+        <textarea name="notes" placeholder="Trial notes"></textarea>
+        <button type="submit">Create trial</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Trials</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Trial</th><th>Robot</th><th>Skill</th><th>Success</th><th>Failures</th><th>Interventions</th><th>Log upload</th><th>Report</th></tr>
+          </thead>
+          <tbody>
+            {% for trial in trials %}
+            <tr>
+              <td><a href="/trials/{{ trial.id }}">{{ trial.title }}</a><small>{{ trial.environment }}</small></td>
+              <td>{{ trial.robot_name or '—' }}</td>
+              <td>{{ trial.skill_name or '—' }}</td>
+              <td>{{ '%.1f'|format(trial.success_rate * 100) }}%</td>
+              <td>{{ trial.failure_count }}</td>
+              <td>{{ trial.intervention_count }}</td>
+              <td>
+                <form class="inline-form" method="post" enctype="multipart/form-data" action="/trials/{{ trial.id }}/upload-log">
+                  <input type="file" name="log_file" accept=".csv,.json" required>
+                  <button type="submit">Upload</button>
+                </form>
+              </td>
+              <td><a class="button-link" href="/trials/{{ trial.id }}/report.md">Export</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="8">No trials yet. Add a robot, add a skill, then create a trial.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
