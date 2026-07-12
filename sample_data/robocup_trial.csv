@@ -1,0 +1,9 @@
+timestamp,event_type,label,confidence,value
+0,start,trial_started,,
+1.2,detect_ball,ball_seen,0.91,
+2.4,locomotion,walk_to_ball,0.86,
+4.7,intervention,operator_repositioned,,
+6.1,fall,turning_instability,,
+8.8,fall_recovery,stand_up,0.76,
+12.4,detect_ball,ball_seen,0.94,
+15.2,task_success,goal_reached,,1
